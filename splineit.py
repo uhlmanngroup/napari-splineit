@@ -11,15 +11,23 @@ def cp_addition(cp_new):
     new_element = cp_new[-1]
 
     delta = []
+    delta2 = []
 
     for i in range(len(cp_old)):
         delta.append(cp_old[i] - new_element)
-
+        delta2. append(cp_old[i] - cp_old[i-1])
+ 
     delta = np.linalg.norm(delta, axis = 1)
     delta = np.repeat(delta, 2)
     delta = np.roll(delta, -1)
     delta = np.reshape(delta, (-1,2))
     delta = np.sum(delta, axis = 1)
+    
+    delta2 = np.linalg.norm(delta2, axis = 1)
+    delta2 = np.roll(delta2, -1)
+    
+    delta /= delta2
+   
     cp_new  = np.insert(cp_old, np.argmin(delta) + 1, new_element, axis = 0)
     return cp_new
 
