@@ -6,9 +6,9 @@ import splinegenerator as sg
 from utils import phi_generator
 import time
 
-def cp_addition(cp_new):
-    cp_old = cp_new[:-1]
-    new_element = cp_new[-1]
+def cp_addition(cp_current):
+    cp_old = cp_current[:-1]
+    new_element = cp_current[-1]
 
     delta = []
     delta2 = []
@@ -28,8 +28,8 @@ def cp_addition(cp_new):
     
     delta /= delta2
    
-    cp_new  = np.insert(cp_old, np.argmin(delta) + 1, new_element, axis = 0)
-    return cp_new
+    cp_current  = np.insert(cp_old, np.argmin(delta) + 1, new_element, axis = 0)
+    return cp_current
 
 with napari.gui_qt():    
     cell = np.zeros((64,64))
@@ -81,12 +81,19 @@ with napari.gui_qt():
 
     @thread_worker(connect={'yielded': update_layers})
     def get_cp():
-        m = len(viewer.layers[1].data)
-        while True:
-            if m < len(viewer.layers[1].data):               
-                viewer.layers[1].data = cp_addition(viewer.layers[1].data)                               
-            yield viewer.layers[1].data
-            m = len(viewer.layers[1].data)
-            time.sleep(0.3)
+        cp_old = viewer.layers[1].data.copy()
+        m_old = len(cp_old)
+        while True:             
+            m_current = len(viewer.layers[1].data)
+            if m_old < m_current:               
+                viewer.layers[1].data = cp_addition(viewer.layers[1].data) 
+            m_old = m_current           
+            cp_current = viewer.layers[1].data.copy()           
             
+            if np.array_equal(cp_old, cp_current):
+                pass
+            else:
+                cp_old = cp_current.copy()
+                yield cp_current            
+            time.sleep(0.3)            
     get_cp()
