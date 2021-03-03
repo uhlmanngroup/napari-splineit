@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import splinegenerator as sg
 from utils import phi_generator
+from PIL import Image
 import time
 
 def cp_addition(cp_current):
@@ -32,12 +33,14 @@ def cp_addition(cp_current):
     return cp_current
 
 with napari.gui_qt():    
-    cell = np.zeros((64,64))
+    #cell = np.zeros((64,64))
+    cell = Image.open('./data/bbbc038.tif')
+    cell = np.array(cell)
     viewer = napari.Viewer()
     layer = viewer.add_image(cell)
     
-    cp = np.array([[10,20],[30,20], [30,50], [10,50], [15, 27], [27, 36]])
-    viewer.add_points(cp, size=1, name='control points')
+    cp = np.array([[73,34], [40,51], [43,65], [36,81], [82,102], [115,78]])
+    viewer.add_points(cp, size=2, name='control points')
     cp = torch.from_numpy(cp).float()
 
     phi_generator(len(cp), 500)
@@ -95,5 +98,5 @@ with napari.gui_qt():
             else:
                 cp_old = cp_current.copy()
                 yield cp_current            
-            time.sleep(0.3)            
+            time.sleep(0.1)            
     get_cp()
