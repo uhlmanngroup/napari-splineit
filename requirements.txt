@@ -1,0 +1,6 @@
+napari-plugin-engine>=0.1.9
+napari>=0.4.3
+numpy
+scikit-image
+magicgui
+napari

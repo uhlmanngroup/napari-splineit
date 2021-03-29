@@ -1,5 +1,5 @@
 import numpy as np
-import splinegenerator as sg
+import napari_splineit.splinegenerator as sg
 
 def wrapIndex(t, k, M, half_support):
     wrappedT = t - k
@@ -14,11 +14,15 @@ def wrapIndex(t, k, M, half_support):
     return wrappedT
 
 
-def phi_generator(M, contoursize_max):
+def phi_generator(M, contoursize_max, gui_basis):
     ts = np.linspace(0, float(M), num=contoursize_max, endpoint=False)
     wrapped_indices = np.array([[wrapIndex(t, k, M, 2)
                                  for k in range(M)] for t in ts])
-    vfunc = np.vectorize(sg.B3().value)
+    if (gui_basis == 'linear'):
+        basis = sg.B1()
+    elif (gui_basis == 'cubic'):
+        basis = sg.B3()
+    vfunc = np.vectorize(basis.value)
     phi = vfunc(wrapped_indices)     
     phi = phi.astype(np.float32)
     np.save('phi_' + str(M) + '.npy',phi)
