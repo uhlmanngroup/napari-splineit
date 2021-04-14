@@ -171,5 +171,5 @@ def get_cp(viewer, my_basis, objects_count, output):
             
         time.sleep(0.1)
         
-#         if output is not None:
-#             np.save( output, cp_current)
+        if output is not None:
+            np.save( output, np.array(cp_current, dtype = object))
