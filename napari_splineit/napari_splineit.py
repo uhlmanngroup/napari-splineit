@@ -5,7 +5,7 @@ import numpy as np
 import time
 import torch
 import napari_splineit.splinegenerator as sg 
-from napari_splineit.utils import phi_generator
+from napari_splineit.utils import phi_generator, getCoefsFromKnots
 from napari.qt import thread_worker
 import napari
 
@@ -21,19 +21,24 @@ def spawn_instance(viewer: 'napari.Viewer'):
     mouse_position = viewer.cursor.position
     offset = np.array([[-10,0], [0,10], [10,0], [0, -10]])
     cp = mouse_position + offset
-    objects_count = (len(viewer.layers)) // 3
-    viewer.add_points(cp, size=3, name='control points ' + str(objects_count))
+    
+    objects_count = (len(viewer.layers)) // 2
     cp = torch.from_numpy(cp).float()
-    phi_generator(cp.shape[0], 500, 'cubic')
+    
+    phi_generator(cp.shape[0], 100 * cp.shape[0], 'cubic')    
     phi = np.load('./phi_' + str(cp.shape[0]) + '.npy')
     phi = torch.from_numpy(phi)
+    
     SplineContour = sg.SplineCurveSample(cp.shape[0],sg.B3(),True,cp)
     curve = SplineContour.sample(phi)
-    curve = torch.cat([curve, torch.reshape(curve[0], (1,2))], axis = 0)
+    
+    knots = curve[::100]
+    curve = torch.cat([curve, torch.reshape(curve[0], (1,2))], axis = 0)    
+    
     viewer.add_shapes(curve, shape_type='path', edge_width=3,
                       edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count))
-    viewer.add_shapes(cp, shape_type='polygon', edge_width=2,
-                      edge_color='teal', face_color='transparent', name='control polygon ' + str(objects_count))
+    
+    viewer.add_points(knots, size=3, name='control points ' + str(objects_count))
 
 @magic_factory(
     call_button=True,
@@ -59,29 +64,29 @@ def napari_splineit(
             [[42,30], [41,65], [55,54], [63,35]]
         ])
 
-    for i in range(len(cp)):
-        viewer.add_points(cp[i], size=3, name='control points ' + str(i))
-
     cp = torch.from_numpy(cp).float()
-    phi_generator(cp.shape[1], 500, 'cubic')
-
+    
+    phi_generator(cp.shape[1], 100 * cp.shape[1], 'cubic')
     phi = np.load('./phi_' + str(cp.shape[1]) + '.npy')
     phi = torch.from_numpy(phi)
+    
     SplineContour = sg.SplineCurveSample(cp.shape[1],sg.B3(),True,cp)
     curve = SplineContour.sample(phi)
+    
+    knots = curve[:,::100]
     curve = torch.cat([curve, torch.reshape(curve[:,0], (-1,1,2))], axis = 1)
 
     for i in range(len(cp)):
         viewer.add_shapes(curve[i], shape_type='path', edge_width=3,
-                          edge_color='coral', face_color='royalblue', name='spline ' + str(i))
-        
-    for i in range(len(cp)):
-        cp_polygon = viewer.add_shapes(cp[i], shape_type='polygon', edge_width=2,
-                                       edge_color='teal', face_color='transparent', name='control polygon ' + str(i))
+                          edge_color='coral', face_color='royalblue', name='spline ' + str(i))  
     
+    for i in range(len(knots)):
+        viewer.add_points(knots[i], size=3, name='control points ' + str(i))
+
+
     objects_count = cp.shape[0]
     
-    viewer.window.add_dock_widget(gui_basis) 
+    viewer.window.add_dock_widget(gui_basis)
        
     get_cp(viewer, gui_basis, objects_count, output)
     
@@ -117,14 +122,14 @@ def update_layers(updates):
     
     idx_cp = 'control points ' + str(idx)
     idx_spline = 'spline ' + str(idx)
-    idx_control_polygon = 'control polygon ' + str(idx)
     
     if (gui_basis == 'linear'):
         basis = sg.B1()
     elif (gui_basis == 'cubic'):
         basis = sg.B3()
     
-    cp = viewer.layers[idx_cp].data    
+    cp = viewer.layers[idx_cp].data
+    cp = getCoefsFromKnots(cp, gui_basis)    
     cp = torch.from_numpy(cp).float()
     phi_generator(len(cp), 500, gui_basis)
     phi = np.load('./phi_' + str(len(cp)) + '.npy')
@@ -140,16 +145,7 @@ def update_layers(updates):
     spline.add(
         [curve],
         shape_type='path',
-    ) 
-    
-    cp_polygon = viewer.layers[idx_control_polygon]
-    cp_polygon.selected_data = set(range(cp_polygon.nshapes))
-    cp_polygon.remove_selected()
-
-    cp_polygon.add(
-        [cp],
-        shape_type='polygon',
-    ) 
+    )
     
     viewer.active_layer = viewer.layers[idx_cp] 
     
@@ -159,7 +155,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
     m_old = []
     
     #ToDo: generalize object count 
-    objects_count = (len(viewer.layers))//3
+    objects_count = (len(viewer.layers))//2
     
     for i in range(objects_count):
         idx_cp = 'control points ' + str(i)
@@ -168,7 +164,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
     basis_old = gui_basis.basis.value
     
     while True:             
-        objects_count = (len(viewer.layers))//3
+        objects_count = (len(viewer.layers))//2
         
         basis_current = gui_basis.basis.value
         if basis_old == basis_current:
@@ -209,6 +205,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
         time.sleep(0.1)
         
         if output is not None:
+            #ToDo: support saving control points
             np.save( output, np.array(cp_current, dtype = object))
             
         @viewer.mouse_drag_callbacks.append
@@ -218,13 +215,13 @@ def get_cp(viewer, gui_basis, objects_count, output):
                 mouse_position = np.asarray(event.position)
                 mouse_position = np.round(mouse_position).astype(int)
                 
-                objects_count = (len(viewer.layers))//3
+                objects_count = (len(viewer.layers))//2
                 idx_active_layer = np.zeros(objects_count).astype('int')
                 for i in range(objects_count):
                     cp_list = viewer.layers['control points ' + str(i)].data            
                     for j in range(len(cp_list)):
                         #ToDo: include a tolerance region of cp_list to compare
-                        if(np.array_equal(mouse_position, cp_list[j])):
+                        if(np.array_equal(mouse_position, np.array(cp_list[j]).astype('int'))):
                             idx_active_layer[i] = 1
                             break                      
                     if np.count_nonzero(idx_active_layer) > 0:
