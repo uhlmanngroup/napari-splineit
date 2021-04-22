@@ -11,10 +11,29 @@ import napari
 
 @magicgui(
         auto_call=True,
-        basis={"choices": ["cubic", "linear"]},  
+        basis={"choices": ["cubic", "linear"]}, 
 )
-def my_basis(basis = "cubic"):
+def gui_basis(basis = "cubic"):
     return basis
+
+@napari.Viewer.bind_key('w')
+def spawn_instance(viewer: 'napari.Viewer'):
+    mouse_position = viewer.cursor.position
+    offset = np.array([[-10,0], [0,10], [10,0], [0, -10]])
+    cp = mouse_position + offset
+    objects_count = (len(viewer.layers)) // 3
+    viewer.add_points(cp, size=3, name='control points ' + str(objects_count))
+    cp = torch.from_numpy(cp).float()
+    phi_generator(cp.shape[0], 500, 'cubic')
+    phi = np.load('./phi_' + str(cp.shape[0]) + '.npy')
+    phi = torch.from_numpy(phi)
+    SplineContour = sg.SplineCurveSample(cp.shape[0],sg.B3(),True,cp)
+    curve = SplineContour.sample(phi)
+    curve = torch.cat([curve, torch.reshape(curve[0], (1,2))], axis = 0)
+    viewer.add_shapes(curve, shape_type='path', edge_width=3,
+                      edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count))
+    viewer.add_shapes(cp, shape_type='polygon', edge_width=2,
+                      edge_color='teal', face_color='transparent', name='control polygon ' + str(objects_count))
 
 @magic_factory(
     call_button=True,
@@ -62,9 +81,9 @@ def napari_splineit(
     
     objects_count = cp.shape[0]
     
-    viewer.window.add_dock_widget(my_basis)
+    viewer.window.add_dock_widget(gui_basis) 
        
-    get_cp(viewer, my_basis, objects_count, output)
+    get_cp(viewer, gui_basis, objects_count, output)
     
 def cp_addition(cp_current):
     cp_old = cp_current[:-1]
@@ -94,20 +113,20 @@ def cp_addition(cp_current):
 def update_layers(updates):
     viewer = updates[0]    
     idx = updates[1]
-    my_basis = updates[2]
+    gui_basis = updates[2]
     
     idx_cp = 'control points ' + str(idx)
     idx_spline = 'spline ' + str(idx)
     idx_control_polygon = 'control polygon ' + str(idx)
     
-    if (my_basis == 'linear'):
+    if (gui_basis == 'linear'):
         basis = sg.B1()
-    elif (my_basis == 'cubic'):
+    elif (gui_basis == 'cubic'):
         basis = sg.B3()
     
     cp = viewer.layers[idx_cp].data    
     cp = torch.from_numpy(cp).float()
-    phi_generator(len(cp), 500, my_basis)
+    phi_generator(len(cp), 500, gui_basis)
     phi = np.load('./phi_' + str(len(cp)) + '.npy')
     phi = torch.from_numpy(phi)
     SplineContour = sg.SplineCurveSample(len(cp),basis,True,cp)
@@ -135,7 +154,7 @@ def update_layers(updates):
     viewer.active_layer = viewer.layers[idx_cp] 
     
 @thread_worker(connect={'yielded': update_layers})
-def get_cp(viewer, my_basis, objects_count, output):
+def get_cp(viewer, gui_basis, objects_count, output):
     cp_old = []
     m_old = []
     
@@ -146,12 +165,12 @@ def get_cp(viewer, my_basis, objects_count, output):
         idx_cp = 'control points ' + str(i)
         cp_old.append(viewer.layers[idx_cp].data.copy())
         m_old.append(viewer.layers[idx_cp].data.shape[0]) 
-    basis_old = my_basis.basis.value
+    basis_old = gui_basis.basis.value
     
     while True:             
         objects_count = (len(viewer.layers))//3
         
-        basis_current = my_basis.basis.value
+        basis_current = gui_basis.basis.value
         if basis_old == basis_current:
             pass
         else:
@@ -190,12 +209,12 @@ def get_cp(viewer, my_basis, objects_count, output):
         time.sleep(0.1)
         
         if output is not None:
-            np.save(output, np.array(cp_current, dtype = object))
+            np.save( output, np.array(cp_current, dtype = object))
             
         @viewer.mouse_drag_callbacks.append
         def track_mouse_click(viewer, event):
             yield
-            if event.type == 'mouse_release': 
+            if event.type == 'mouse_release':
                 mouse_position = np.asarray(event.position)
                 mouse_position = np.round(mouse_position).astype(int)
                 
