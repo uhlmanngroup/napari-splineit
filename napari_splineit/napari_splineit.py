@@ -215,13 +215,17 @@ def get_cp(viewer, gui_basis, objects_count, output):
                 mouse_position = np.asarray(event.position)
                 mouse_position = np.round(mouse_position).astype(int)
                 
+                x, y = np.meshgrid(range(-2,3), range(-2,3))
+                grid = np.array((x.ravel(), y.ravel())).T
+                
                 objects_count = (len(viewer.layers))//2
                 idx_active_layer = np.zeros(objects_count).astype('int')
                 for i in range(objects_count):
                     cp_list = viewer.layers['control points ' + str(i)].data            
                     for j in range(len(cp_list)):
-                        #ToDo: include a tolerance region of cp_list to compare
-                        if(np.array_equal(mouse_position, np.array(cp_list[j]).astype('int'))):
+                        val = np.array(cp_list[j]).astype('int')
+                        val = val - grid
+                        if(mouse_position.tolist() in val.tolist()):
                             idx_active_layer[i] = 1
                             break                      
                     if np.count_nonzero(idx_active_layer) > 0:
