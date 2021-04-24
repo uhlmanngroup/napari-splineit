@@ -35,10 +35,10 @@ def spawn_instance(viewer: 'napari.Viewer'):
     knots = curve[::100]
     curve = torch.cat([curve, torch.reshape(curve[0], (1,2))], axis = 0)    
     
-    viewer.add_shapes(curve, shape_type='path', edge_width=3,
-                      edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count))
-    
     viewer.add_points(knots, size=3, name='control points ' + str(objects_count))
+    
+    viewer.add_shapes(curve, shape_type='path', edge_width=3,
+                      edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count))    
 
 @magic_factory(
     call_button=True,
@@ -74,16 +74,15 @@ def napari_splineit(
     curve = SplineContour.sample(phi)
     
     knots = curve[:,::100]
-    curve = torch.cat([curve, torch.reshape(curve[:,0], (-1,1,2))], axis = 1)
-
-    for i in range(len(cp)):
-        viewer.add_shapes(curve[i], shape_type='path', edge_width=3,
-                          edge_color='coral', face_color='royalblue', name='spline ' + str(i))  
+    curve = torch.cat([curve, torch.reshape(curve[:,0], (-1,1,2))], axis = 1)    
     
     for i in range(len(knots)):
         viewer.add_points(knots[i], size=3, name='control points ' + str(i))
-
-
+    
+    for i in range(len(cp)):
+        viewer.add_shapes(curve[i], shape_type='path', edge_width=3,
+                          edge_color='coral', face_color='royalblue', name='spline ' + str(i))      
+    
     objects_count = cp.shape[0]
     
     viewer.window.add_dock_widget(gui_basis)
@@ -171,7 +170,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
             pass
         else:
             basis_old = basis_current
-            yield [viewer, 0, basis_current]     
+            yield [viewer, int(viewer.active_layer.name[-1]), basis_current]     
         
         m_current = []
         for i in range(objects_count):
@@ -179,7 +178,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
             m_current.append(viewer.layers[idx_object].data.shape[0])
         
         if len(m_current) > len(m_old):
-            m_old.append(m_old[0])
+            m_old.append(0)
         
         idx_m_update = list(map(np.less,m_old,m_current))
         idx_m_update = np.where(np.array(idx_m_update) == 1)[0]
