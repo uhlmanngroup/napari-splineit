@@ -19,7 +19,7 @@ def gui_basis(basis = "cubic"):
 @napari.Viewer.bind_key('w')
 def spawn_instance(viewer: 'napari.Viewer'):
     mouse_position = viewer.cursor.position
-    offset = np.array([[-10,0], [0,10], [10,0], [0, -10]])
+    offset = np.array([[-15,0], [0,15], [15,0], [0, -15]])
     cp = mouse_position + offset
     
     objects_count = (len(viewer.layers)) // 2
@@ -38,15 +38,20 @@ def spawn_instance(viewer: 'napari.Viewer'):
     viewer.add_points(knots, size=3, name='control points ' + str(objects_count))
     
     viewer.add_shapes(curve, shape_type='path', edge_width=3,
-                      edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count))    
+                      edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count)) 
+   
+logo = pathlib.Path('resources/images/splineit_logo.png')
 
 @magic_factory(
+    label_head = dict(widget_type='Label', 
+                      label=f'<h1><img src="{logo}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1>'),
     call_button=True,
     viewer={'visible': False, 'label': ' '},
     user_input={'mode': 'r', 'label': 'Input'},
     output={'mode': 'w', 'label': 'Output'},
         )
 def napari_splineit(
+    label_head,
     viewer : napari.Viewer,
     user_input: pathlib.Path,
     output: pathlib.Path,
