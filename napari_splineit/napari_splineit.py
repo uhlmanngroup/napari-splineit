@@ -11,10 +11,10 @@ import napari
 
 @magicgui(
         auto_call=True,
-        basis={"choices": ["cubic", "linear"]}, 
+        Interpolation={"choices": ["cubic", "linear"]}, 
 )
-def gui_basis(basis = "cubic"):
-    return basis
+def gui_basis(Interpolation = "cubic"):
+    return Interpolation
 
 @napari.Viewer.bind_key('w')
 def spawn_instance(viewer: 'napari.Viewer'):
@@ -40,18 +40,18 @@ def spawn_instance(viewer: 'napari.Viewer'):
     viewer.add_shapes(curve, shape_type='path', edge_width=3,
                       edge_color='coral', face_color='royalblue', name='spline ' + str(objects_count)) 
    
-logo = pathlib.Path('resources/images/splineit_logo.png')
+logo_image = (pathlib.Path(__file__).parent/'../resources/images/splineit_logo.png')
 
 @magic_factory(
-    label_head = dict(widget_type='Label', 
-                      label=f'<h1><img src="{logo}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1>'),
+    logo = dict(widget_type='Label', 
+                      label=f'<h1><img src="{logo_image}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1>'),
     call_button=True,
     viewer={'visible': False, 'label': ' '},
     user_input={'mode': 'r', 'label': 'Input'},
     output={'mode': 'w', 'label': 'Output'},
         )
 def napari_splineit(
-    label_head,
+    logo,
     viewer : napari.Viewer,
     user_input: pathlib.Path,
     output: pathlib.Path,
@@ -60,8 +60,7 @@ def napari_splineit(
     
     if user_input.is_file():
         cp = np.load(user_input, allow_pickle = True)
-        #ToDo: Need fix
-        cp = cp.astype('int')
+        cp = cp.astype('float')
     else:
         cp = np.array([
             [[14,19], [14,35], [33,35], [33,19]],
@@ -90,7 +89,7 @@ def napari_splineit(
     
     objects_count = cp.shape[0]
     
-    viewer.window.add_dock_widget(gui_basis)
+    viewer.window.add_dock_widget(gui_basis, name='Interpolation Type', area= 'left')
        
     get_cp(viewer, gui_basis, objects_count, output)
     
@@ -165,12 +164,12 @@ def get_cp(viewer, gui_basis, objects_count, output):
         idx_cp = 'control points ' + str(i)
         cp_old.append(viewer.layers[idx_cp].data.copy())
         m_old.append(viewer.layers[idx_cp].data.shape[0]) 
-    basis_old = gui_basis.basis.value
+    basis_old = gui_basis.Interpolation.value
     
     while True:             
         objects_count = (len(viewer.layers))//2
         
-        basis_current = gui_basis.basis.value
+        basis_current = gui_basis.Interpolation.value
         if basis_old == basis_current:
             pass
         else:
@@ -191,7 +190,7 @@ def get_cp(viewer, gui_basis, objects_count, output):
             viewer.layers['control points ' + str(idx_m_update[0])].data = cp_addition(viewer.layers
                                                                            ['control points ' + str(idx_m_update[0])].data) 
             m_old = m_current.copy() 
-        #because len of cp current is more, so equal not working
+        
         cp_current = []
         for i in range(objects_count):
             idx_object = 'control points ' + str(i)
