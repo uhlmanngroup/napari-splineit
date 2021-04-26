@@ -43,8 +43,7 @@ def spawn_instance(viewer: 'napari.Viewer'):
 logo_image = (pathlib.Path(__file__).parent/'../resources/images/splineit_logo.png')
 
 @magic_factory(
-    logo = dict(widget_type='Label', 
-                      label=f'<h1><img src="{logo_image}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1>'),
+    logo=dict(widget_type='Label',label=f'<h1><img src="{logo_image}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1><h4 style="text-align:center">An editing tool for SplineDist<br><span style="font-weight:normal"><a href="https://www.biorxiv.org/content/10.1101/2020.10.27.357640v2">10.1101/2020.10.27.357640</a></span></h4>'),
     call_button=True,
     viewer={'visible': False, 'label': ' '},
     user_input={'mode': 'r', 'label': 'Input'},
