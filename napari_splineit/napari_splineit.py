@@ -149,7 +149,8 @@ def update_layers(updates):
         shape_type='path',
     )
     
-    viewer.active_layer = viewer.layers[idx_cp] 
+    layer = viewer.layers["control points " + str(idx_cp)]
+    viewer.layers.selection.active = layer
     
 @thread_worker(connect={'yielded': update_layers})
 def get_cp(viewer, gui_basis, objects_count, output):
@@ -237,4 +238,5 @@ def get_cp(viewer, gui_basis, objects_count, output):
 
                 if (len(idx_active_layer)) > 0:
                     idx_active_layer = idx_active_layer[0]
-                    viewer.active_layer = viewer.layers['control points ' + str(idx_active_layer)]
+                    layer = viewer.layers["control points " + str(idx_active_layer)]
+                    viewer.layers.selection.active = layer

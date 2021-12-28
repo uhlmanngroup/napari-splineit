@@ -1,6 +1,7 @@
 import sys
 import napari
-from .napari_splineit import start_napari_splineit
+
+from .napari_splineit import napari_splineit
 
 
 def main():
