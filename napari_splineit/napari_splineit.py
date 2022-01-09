@@ -149,7 +149,7 @@ def update_layers(updates):
         shape_type='path',
     )
     
-    layer = viewer.layers["control points " + str(idx_cp)]
+    layer = viewer.layers[idx_cp]
     viewer.layers.selection.active = layer
     
 @thread_worker(connect={'yielded': update_layers})
