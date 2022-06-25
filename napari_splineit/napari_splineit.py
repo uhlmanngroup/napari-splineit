@@ -8,6 +8,7 @@ import napari_splineit.splinegenerator as sg
 from napari_splineit.utils import phi_generator, getCoefsFromKnots
 from napari.qt import thread_worker
 import napari
+from PIL import Image
 
 @magicgui(
         auto_call=True,
@@ -46,19 +47,33 @@ logo_image = (pathlib.Path(__file__).parent/'../resources/images/splineit_logo.p
     logo=dict(widget_type='Label',label=f'<h1><img src="{logo_image}" width="75" style="vertical-align:middle">&nbsp;SplineIt</h1><h4 style="text-align:center">An editing tool for SplineDist<br><span style="font-weight:normal"><a href="https://www.biorxiv.org/content/10.1101/2020.10.27.357640v2">10.1101/2020.10.27.357640</a></span></h4>'),
     call_button=True,
     viewer={'visible': False, 'label': ' '},
+    Annotation={
+        "widget_type": "RadioButtons",
+        "orientation": "horizontal",
+        "choices": [("Mask", 1), ("Spline Parameters", 2)],
+    },
     user_input={'mode': 'r', 'label': 'Input'},
     output={'mode': 'w', 'label': 'Output'},
-        )
+    )
 def napari_splineit(
     logo,
     viewer : napari.Viewer,
+    Annotation,
     user_input: pathlib.Path,
     output: pathlib.Path,
-        ):
+    ):
     mode = napari_splineit._call_button.text
     
     if user_input.is_file():
-        cp = np.load(user_input, allow_pickle = True)
+        if(Annotation == 2):         
+            cp = np.load(user_input, allow_pickle = True)
+        else:
+            img =  Image.open(user_input)
+            img = np.array(img)
+            M=20
+            splineCurve=sg.SplineCurve(M,sg.B3(),True,0)
+            cp = splineCurve.getCoefsFromBinaryMask(img)
+            cp = np.array(cp)
         cp = cp.astype('float')
     else:
         cp = np.array([
