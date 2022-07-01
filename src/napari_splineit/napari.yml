@@ -1,0 +1,77 @@
+name: napari-splineit
+display_name: Napari SplineIt2
+contributions:
+  commands:
+    - id: napari-splineit.make_sample_data_coins
+      python_name: napari_splineit._sample_data:make_sample_data_coins
+      title: Coin sample data
+
+    - id: napari-splineit.make_sample_data_s
+      python_name: napari_splineit._sample_data:make_sample_data_l
+      title: toy-data small
+
+    - id: napari-splineit.make_sample_data_m
+      python_name: napari_splineit._sample_data:make_sample_data_m
+      title: toy-data medium
+
+    - id: napari-splineit.make_sample_data_l
+      python_name: napari_splineit._sample_data:make_sample_data_l
+      title: toy-data large
+
+    - id: napari-splineit.make_sample_data_xl
+      python_name: napari_splineit._sample_data:make_sample_data_xl
+      title: toy-data extra large
+
+    - id: napari-splineit.make_sample_data_xxl
+      python_name: napari_splineit._sample_data:make_sample_data_xxl
+      title: toy-data extra large
+
+    - id: napari-splineit.make_qwidget
+      python_name: napari_splineit._widget:SplineitQWidget
+      title: Make example SplineitQWidget
+    - id: napari-splineit.read_splineit
+      title: Read ".splineit" files
+      python_name: napari_splineit._reader:get_reader
+    - id: napari-splineit.write_splineit_json
+      title: Save splineit control points to json
+      python_name: napari_splineit._writer:write_splineit_json
+
+  writers:
+    - command: napari-splineit.write_splineit_json
+      layer_types:
+      - shapes
+      filename_extensions:
+      - .splineit
+
+  readers:
+    - command: napari-splineit.read_splineit
+      filename_patterns:
+      - '*.splineit'
+      accepts_directories: false
+  sample_data:
+    - command: napari-splineit.make_sample_data_coins
+      display_name: Coins
+      key: unique_id.1
+    - command: napari-splineit.make_sample_data_s
+      display_name: small toy data
+      key: unique_id.2
+    - command: napari-splineit.make_sample_data_m
+      display_name: medium toy data
+      key: unique_id.3
+    - command: napari-splineit.make_sample_data_l
+      display_name: large toy data
+      key: unique_id.4
+    - command: napari-splineit.make_sample_data_xl
+      display_name: extra large toy data
+      key: unique_id.5
+    - command: napari-splineit.make_sample_data_xxl
+      display_name: extra large toy data
+      key: unique_id.6
+  widgets:
+    - command: napari-splineit.make_qwidget
+      display_name: Splineit-QWidget
+    # - command: napari-splineit.make_magic_widget
+    #   display_name: Example Magic Widget
+    # - command: napari-splineit.make_func_widget
+    #   autogenerate: true
+    #   display_name: Example Function Widget
