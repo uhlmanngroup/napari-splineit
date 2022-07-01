@@ -10,7 +10,7 @@ from qtpy.QtWidgets import QFormLayout, QLineEdit, QPushButton, QWidget
 import numpy as np
 from .widgets import SpinSlider
 from .layer.layer_factory import layer_factory
-from .interpolation import CubicInterpolator, SplineInterpolator
+from .interpolation import SplineInterpolator, UhlmannSplines
 from .interpolation.splinegenerator import SplineCurve, B3
 
 
