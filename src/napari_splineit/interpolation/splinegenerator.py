@@ -77,11 +77,16 @@ class SplineCurve:
 
         binaryMask_padded = np.zeros((binaryMask.shape[0]+2,binaryMask.shape[1]+2))
         binaryMask_padded[1:-1,1:-1]=binaryMask
-        contours = measure.find_contours(binaryMask_padded, 0)
-
+        
         coefs_list = []
-        for i in range(len(contours)):
-            c = contours[i]-1
+        object_list = np.unique(binaryMask_padded)[1:]
+        for i in range(len(object_list)):
+            binaryMask_padded_tmp = binaryMask_padded.copy()
+            binaryMask_padded_tmp[binaryMask_padded_tmp != i+1] =0
+            binaryMask_padded_tmp[binaryMask_padded_tmp > 0] = 1
+            contour = measure.find_contours(binaryMask_padded_tmp, 0)[0]
+            
+            c = contour-1
             coefs = self.getCoefsFromDenseContour(c)
 
             knots = np.zeros((self.M,2))
