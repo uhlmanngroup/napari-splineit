@@ -72,14 +72,19 @@ class SplineCurve:
 
         return self.coefs
 
-    def getCoefsFromBinaryMask(self, binaryMask):
+    def getKnotsFromBinaryMask(self, binaryMask):
         from skimage import measure
 
         contours = measure.find_contours(binaryMask, 0)
         coefs_list = []
         for i in range(len(contours)):
             coefs = self.getCoefsFromDenseContour(contours[i])
-            coefs_list.append(coefs)
+
+            knots = np.zeros((self.M,2))
+            for k in range(self.M):
+                knots[k] = self.sample_point(k)
+
+            coefs_list.append(knots)
         return coefs_list
 
     def wrapIndex(self, t, k):
@@ -98,53 +103,14 @@ class SplineCurve:
                 wrappedT = t - (k - self.M)
         return wrappedT
         
-    def parameterToWorld(self, t, dt=False):
-        if self.coefs is None:
-            raise RuntimeError(SplineCurve.noCoefsMessage)
-            return
-
+    def sample_point(self, t):
         value = 0.0
-        if self.closed:
-             for k in range(0, self.M):
-                tval = self.wrapIndex(t, k)
-                if (tval > -self.halfSupport and tval < self.halfSupport):
-                    if dt:
-                        splineValue=self.splineGenerator.firstDerivativeValue(tval)
-                    else:
-                        splineValue=self.splineGenerator.value(tval)
-                    value += self.coefs[k] * splineValue
-        else:
-            for k in range(0, self.M+int(self.splineGenerator.support)):
-                tval = t - (k - self.halfSupport)
-                if (tval > -self.halfSupport and tval < self.halfSupport):
-                    if dt:
-                        splineValue=self.splineGenerator.firstDerivativeValue(tval)
-                    else:
-                        splineValue=self.splineGenerator.value(tval)
-                    value += self.coefs[k] * splineValue
+        for k in range(0, self.M):
+            tval = self.wrapIndex(t, k)
+            if (tval > -self.halfSupport and tval < self.halfSupport):
+                splineValue=self.splineGenerator.value(tval)
+                value += self.coefs[k] * splineValue
         return value
-        
-    def getKnotsFromCoefs(self):
-        if len(self.coefs.shape) == 1:
-            knots = np.zeros(self.M)
-            if self.closed:
-                for k in range(self.M):
-                    knots[k] = self.parameterToWorld(k, dt=False)
-            else:
-                for k in range(-self.halfSupport,self.M+self.halfSupport):
-                    knots[k] = self.parameterToWorld(k, dt=False)
-
-        elif len(self.coefs.shape) == 2:
-            if (self.coefs.shape[1] == 2):
-                knots = np.zeros((self.M,2))
-                if self.closed:
-                    for k in range(self.M):
-                        knots[k] = self.parameterToWorld(k, dt=False)
-                else:
-                    for k in range(-self.halfSupport,self.M+self.halfSupport):
-                        knots[k] = self.parameterToWorld(k, dt=False)
-                
-        return knots
 
 
 class SplineCurveSample(SplineCurve):
