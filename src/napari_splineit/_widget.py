@@ -61,14 +61,14 @@ class SplineitQWidget(QWidget):
 
         M = self.n_ctrl_points_widget.value()
         splineCurve = SplineCurve(M, B3(), True, 0)
-        cp = splineCurve.getCoefsFromBinaryMask(mask)
+        ctrl_points = splineCurve.getCoefsFromBinaryMask(mask)
 
         interpolator = UhlmannSplines()
         base_name = self._get_layer_base_name()
         layer_factory(
             self.viewer,
             interpolator=interpolator,
-            data=cp,
+            data=ctrl_points,
             ctrl_layer_name=f"{base_name}-CTRL",
             interpolated_layer_name=f"{base_name}-Interpolated",
         )
