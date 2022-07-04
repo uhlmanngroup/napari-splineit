@@ -69,7 +69,7 @@ class CtrlLayerControls(QtShapesControls):
         self.layer.run_interpolation()
 
 
-class CtrlPtrLayer(ShapesLayer):
+class CtrlLayer(ShapesLayer):
     def __init__(self, *args, interpolator, interpolated_layer, **kwargs):
         self.interpolator = interpolator
         self.interpolated_layer = interpolated_layer
@@ -131,7 +131,7 @@ class CtrlPtrLayer(ShapesLayer):
             raise RuntimeError("only polygon shape is allowed")
 
 
-layer_to_controls[CtrlPtrLayer] = CtrlLayerControls
+layer_to_controls[CtrlLayer] = CtrlLayerControls
 
 
 # Supporting Napari readers with a custom layer  is a bit hacky:
@@ -139,7 +139,7 @@ layer_to_controls[CtrlPtrLayer] = CtrlLayerControls
 #  - The small-cased name of the layer is in `napari.layers.NAMES`.
 #  - There is a method add_<layer-name> (ie add_splineit_ctrl)
 #    in the viewer class (implemented in `_reader.py`)
-#  - We use the name `Splineit_Ctrl` instead of just `CtrlPtrLayer`
+#  - We use the name `Splineit_Ctrl` instead of just `CtrlLayer`
 #    to avoid any name clashes.
-napari.layers.Splineit_Ctrl = CtrlPtrLayer
+napari.layers.Splineit_Ctrl = CtrlLayer
 napari.layers.NAMES.add("splineit_ctrl")

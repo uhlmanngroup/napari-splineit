@@ -1,7 +1,7 @@
 from napari.utils.events import Event
 
 from ._interpolated_layer import InterpolatedLayer
-from ._ctrl_layer import CtrlPtrLayer
+from ._ctrl_layer import CtrlLayer
 
 
 def layer_factory(
@@ -24,7 +24,7 @@ def layer_factory(
     )
     viewer.add_layer(interpolated_layer)
 
-    ctrl_layer = CtrlPtrLayer(
+    ctrl_layer = CtrlLayer(
         name=ctrl_layer_name,
         metadata={
             "interpolator": interpolator,

@@ -59,25 +59,25 @@ class SplineInterpolator(InterpolatorBase):
         self.s = s
         self.n = n
 
-    def __call__(self, ctrl_points):
-        ctrl_points = np.require(ctrl_points)
-        if ctrl_points.shape[0] < 3:
+    def __call__(self, knots):
+        knots = np.require(knots)
+        if knots.shape[0] < 3:
 
-            first_point = ctrl_points[0, :]
-            return np.concatenate([ctrl_points, first_point[None, :]], axis=0)
+            first_point = knots[0, :]
+            return np.concatenate([knots, first_point[None, :]], axis=0)
 
         else:
 
-            first_point = ctrl_points[0, :]
-            ctrl_points = np.concatenate(
-                [ctrl_points, first_point[None, :]], axis=0
+            first_point = knots[0, :]
+            knots = np.concatenate(
+                [knots, first_point[None, :]], axis=0
             )
 
-            t = np.arange(ctrl_points.shape[0])
+            t = np.arange(knots.shape[0])
 
-            cs_x = splrep(t, ctrl_points[:, 0], per=True, k=self.k, s=self.s)
-            cs_y = splrep(t, ctrl_points[:, 1], per=True, k=self.k, s=self.s)
-            tfine = np.linspace(0, t[-1], self.n * ctrl_points.shape[0], endpoint=False)
+            cs_x = splrep(t, knots[:, 0], per=True, k=self.k, s=self.s)
+            cs_y = splrep(t, knots[:, 1], per=True, k=self.k, s=self.s)
+            tfine = np.linspace(0, t[-1], self.n * knots.shape[0], endpoint=False)
             xx = splev(tfine, cs_x)[:, None]
             yy = splev(tfine, cs_y)[:, None]
             ret = np.concatenate([xx, yy], axis=1)

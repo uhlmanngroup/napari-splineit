@@ -75,10 +75,14 @@ class SplineCurve:
     def getKnotsFromBinaryMask(self, binaryMask):
         from skimage import measure
 
-        contours = measure.find_contours(binaryMask, 0)
+        binaryMask_padded = np.zeros((binaryMask.shape[0]+2,binaryMask.shape[1]+2))
+        binaryMask_padded[1:-1,1:-1]=binaryMask
+        contours = measure.find_contours(binaryMask_padded, 0)
+
         coefs_list = []
         for i in range(len(contours)):
-            coefs = self.getCoefsFromDenseContour(contours[i])
+            c = contours[i]-1
+            coefs = self.getCoefsFromDenseContour(c)
 
             knots = np.zeros((self.M,2))
             for k in range(self.M):
