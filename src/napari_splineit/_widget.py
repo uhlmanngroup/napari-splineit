@@ -35,7 +35,7 @@ class SplineitQWidget(QWidget):
         self.setLayout(QFormLayout())
         self.layout().addRow("name", self._layer_name_edit)
         self.layout().addRow(self._add_layer_btn)
-        self.layout().addRow("#ctrl-points", self.n_ctrl_points_widget)
+        self.layout().addRow("#parameters", self.n_ctrl_points_widget)
         self.layout().addRow(self._add_from_selected_mask)
 
     def _connect_ui(self):
@@ -69,7 +69,7 @@ class SplineitQWidget(QWidget):
             self.viewer,
             interpolator=interpolator,
             data=knots,
-            ctrl_layer_name=f"{base_name}-CTRL",
+            ctrl_layer_name=f"{base_name}-Parameters",
             interpolated_layer_name=f"{base_name}-Interpolated",
         )
 
