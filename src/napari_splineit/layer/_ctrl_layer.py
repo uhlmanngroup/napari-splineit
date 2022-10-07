@@ -93,8 +93,11 @@ class CtrlLayer(ShapesLayer):
         return "shapes"
 
     def add(self, data, *, shape_type, **kwargs):
+        print("data",len(data),"shape_type",shape_type)
+        if shape_type == "":
+            shape_type = "polygon"
         if shape_type != "polygon" and shape_type != "path":
-            raise RuntimeError("only polygon shape type is allowed")
+            raise RuntimeError(f"only polygon shape type is allowed: {shape_type=}")
 
         if isinstance(data, list):
 
@@ -113,6 +116,10 @@ class CtrlLayer(ShapesLayer):
             self.interpolated_layer.add(
                 data=interpolated, shape_type=shape_type, **kwargs
             )
+
+    def remove_all(self):
+        self.selected_data = set(range(self.nshapes))
+        self.remove_selected()
 
     def interpolate(self, data):
         return self.interpolator(data)

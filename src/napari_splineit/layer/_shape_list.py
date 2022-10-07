@@ -14,7 +14,9 @@ class CtrlLayerShapeList(ShapeList):
         super(CtrlLayerShapeList, self).__init__(*args, **kwargs)
         self.mode = "DIRECT"
 
-    def edit(self, index, data, face_color=None, edge_color=None, new_type=None):
+    def edit(
+        self, index, data, face_color=None, edge_color=None, new_type=None
+    ):
         # if self.ctrl_layer._mode == Mode.VERTEX_INSERT:
 
         #     pass
@@ -32,30 +34,40 @@ class CtrlLayerShapeList(ShapeList):
 
         self.update_interpolated(index=index, data=new_data, new_type=new_type)
 
-
     def run_interpolation(self):
 
-        interpolated_polygons = [self.ctrl_layer.interpolate(s.data) for index,s in enumerate(self.shapes)]
+        interpolated_polygons = [
+            self.ctrl_layer.interpolate(s.data)
+            for index, s in enumerate(self.shapes)
+        ]
         with self.interpolated_layer.events.set_data.blocker():
-            self.interpolated_layer._data_view.remove_all()
-            self.interpolated_layer.add_polygons(interpolated_polygons)
-        self.interpolated_layer.refresh()
+            edge_color = self.interpolated_layer.edge_color
+            face_color = self.interpolated_layer.face_color
+            # self.interpolated_layer._data_view.remove_all()
 
+            self.interpolated_layer.selected_data = set(
+                range(self.interpolated_layer.nshapes)
+            )
+            self.interpolated_layer.remove_selected()
+
+            self.interpolated_layer.add_polygons(interpolated_polygons)
+            self.interpolated_layer.edge_color = edge_color
+            self.interpolated_layer.face_color = face_color
+
+        self.interpolated_layer.refresh()
 
         # for index,s in enumerate(self.shapes):
         #     new_data = self.ctrl_layer.interpolate(s.data)
         #     self.update_interpolated(index=index, data=new_data, new_type=None)
         # self.interpolated_layer.refresh()
 
-
-
-
     def update_interpolated(self, data, index, new_type=None):
         with self.interpolated_layer.events.set_data.blocker():
-            self.interpolated_layer._data_view.edit(index=index, data=data, new_type=new_type)
+            self.interpolated_layer._data_view.edit(
+                index=index, data=data, new_type=new_type
+            )
             self.interpolated_layer._data_view._update_displayed()
         self.interpolated_layer.refresh()
-
 
     def shift(self, index, shift):
         self.interpolated_layer._data_view.shift(index, shift.copy())
@@ -93,4 +105,3 @@ class CtrlLayerShapeList(ShapeList):
         super(CtrlLayerShapeList, self).remove(index, renumber)
         if renumber:
             self.interpolated_layer.refresh()
-
