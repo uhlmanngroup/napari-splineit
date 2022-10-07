@@ -25,14 +25,12 @@ class CubicInterpolator(InterpolatorBase):
         else:
 
             first_point = knots[0, :]
-            knots = np.concatenate(
-                [knots, first_point[None, :]], axis=0
-            )
+            knots = np.concatenate([knots, first_point[None, :]], axis=0)
 
             t = np.arange(knots.shape[0])
             cs_x = CubicSpline(t, knots[:, 0], bc_type="periodic")
             cs_y = CubicSpline(t, knots[:, 1], bc_type="periodic")
-            tfine = np.linspace(0, t[-1], endpoint=False)
+            tfine = np.linspace(0, t[-1], endpoint=False, num=4 * len(t))
             xx = cs_x(tfine)[:, None]
             yy = cs_y(tfine)[:, None]
 

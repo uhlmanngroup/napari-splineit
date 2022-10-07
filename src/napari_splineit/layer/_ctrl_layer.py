@@ -15,6 +15,22 @@ from ._shape_list import CtrlLayerShapeList
 # fmt: off
 
 
+
+import contextlib
+import time
+
+
+@contextlib.contextmanager
+def timeit(name):
+    print(name)
+    t0 = time.time()
+    yield
+    t1 = time.time()
+
+    print(f"{name} took: {t1-t0} sec")
+
+
+
 class CtrlLayerControls(QtShapesControls):
     def __init__(self, layer):
         super().__init__(layer)
@@ -101,25 +117,40 @@ class CtrlLayer(ShapesLayer):
 
         if isinstance(data, list):
 
-            super().add(data=data, shape_type=shape_type, **kwargs)
+            with timeit("add ctrl points"):
+                super().add(data=data, shape_type=shape_type, **kwargs)
 
-            self.interpolated_layer.add(
-                data=[self.interpolate(data=poly) for poly in data],
-                shape_type=shape_type,
-                **kwargs
-            )
+            with timeit("do interpolation"):
+                interpolated = [self.interpolate(data=poly) for poly in data]
+
+            with timeit("add interpolated points"):
+                self.interpolated_layer.add(
+                    data=interpolated,
+                    shape_type=shape_type,
+                    **kwargs
+                )
 
         else:
+            with timeit("add ctrl points"):
+                super().add(data=data, shape_type=shape_type, **kwargs)
 
-            super().add(data=data, shape_type=shape_type, **kwargs)
-            interpolated = self.interpolate(data=data)
-            self.interpolated_layer.add(
-                data=interpolated, shape_type=shape_type, **kwargs
-            )
+            with timeit("interpolated points"):
+                interpolated = self.interpolate(data=data)
+
+            with timeit("add interpolated points"):
+                self.interpolated_layer.add(
+                    data=interpolated, shape_type=shape_type, **kwargs
+                )
 
     def remove_all(self):
         self.selected_data = set(range(self.nshapes))
         self.remove_selected()
+
+        # self.interpolated_layer.selected_data = set(range(self.interpolated_layer.nshapes))
+        # self.interpolated_layer.remove_selected()
+        # print("update edge_color")
+        # self.interpolated_layer.edge_color = np.zeros([0,4])
+        # self.interpolated_layer.face_color = np.zeros([0,4]) 
 
     def interpolate(self, data):
         return self.interpolator(data)
@@ -136,6 +167,14 @@ class CtrlLayer(ShapesLayer):
     def shape_type(self, shape_type):
         if shape_type != "polygon":
             raise RuntimeError("only polygon shape is allowed")
+
+
+    def remove_selected(self):
+
+        self.interpolated_layer.selected_data = set(self.selected_data)
+        self.interpolated_layer.remove_selected()
+        super().remove_selected()
+
 
 
 layer_to_controls[CtrlLayer] = CtrlLayerControls

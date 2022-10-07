@@ -6,6 +6,19 @@ from napari.layers.shapes import Shapes as ShapesLayer
 from napari.layers.shapes.shapes import ShapeList as ShapeList
 from napari.layers.shapes.shapes import Mode
 
+import contextlib
+import time
+
+
+@contextlib.contextmanager
+def timeit(name):
+    print(name)
+    t0 = time.time()
+    yield
+    t1 = time.time()
+
+    print(f"{name} took: {t1-t0} sec")
+
 
 class CtrlLayerShapeList(ShapeList):
     def __init__(self, *args, ctrl_layer, interpolated_layer, **kwargs):
@@ -36,23 +49,38 @@ class CtrlLayerShapeList(ShapeList):
 
     def run_interpolation(self):
 
-        interpolated_polygons = [
-            self.ctrl_layer.interpolate(s.data)
-            for index, s in enumerate(self.shapes)
-        ]
+        with timeit("do interpolation"):
+            interpolated_polygons = [
+                self.ctrl_layer.interpolate(s.data)
+                for index, s in enumerate(self.shapes)
+            ]
+
+        print(
+            f"PRE {len(self.interpolated_layer.face_color) = }  {len(interpolated_polygons) = }"
+        )
+
         with self.interpolated_layer.events.set_data.blocker():
-            edge_color = self.interpolated_layer.edge_color
-            face_color = self.interpolated_layer.face_color
+
+            with timeit("save colors"):
+                edge_color = self.interpolated_layer.edge_color
+                face_color = self.interpolated_layer.face_color
             # self.interpolated_layer._data_view.remove_all()
+            print(f"{len(face_color) = }  {len(interpolated_polygons) = }")
 
-            self.interpolated_layer.selected_data = set(
-                range(self.interpolated_layer.nshapes)
-            )
-            self.interpolated_layer.remove_selected()
+            with timeit("remove all"):
+                self.interpolated_layer.selected_data = set(
+                    range(self.interpolated_layer.nshapes)
+                )
+                self.interpolated_layer.remove_selected()
 
-            self.interpolated_layer.add_polygons(interpolated_polygons)
-            self.interpolated_layer.edge_color = edge_color
-            self.interpolated_layer.face_color = face_color
+            print(f"{len(self.interpolated_layer.face_color) = }")
+
+            with timeit("add polygons to interpolated_layer"):
+                self.interpolated_layer.add_polygons(interpolated_polygons)
+
+            with timeit("restore colors"):
+                self.interpolated_layer.edge_color = edge_color
+                self.interpolated_layer.face_color = face_color
 
         self.interpolated_layer.refresh()
 
@@ -99,9 +127,11 @@ class CtrlLayerShapeList(ShapeList):
         super(CtrlLayerShapeList, self).update_z_index(index, z_index)
         self.interpolated_layer.refresh()
 
-    def remove(self, index, renumber=True):
-        if renumber:
-            self.interpolated_layer._data_view.remove(index, renumber)
-        super(CtrlLayerShapeList, self).remove(index, renumber)
-        if renumber:
-            self.interpolated_layer.refresh()
+    # def remove(self, index, renumber=True):
+    #     print("remove ", index, renumber)
+    #     if renumber:
+
+    #         self.interpolated_layer._data_view.remove(index, renumber)
+    #     super(CtrlLayerShapeList, self).remove(index, renumber)
+    #     if renumber:
+    #         self.interpolated_layer.refresh()
