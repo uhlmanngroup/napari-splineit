@@ -4,6 +4,21 @@ from ._interpolated_layer import InterpolatedLayer
 from ._ctrl_layer import CtrlLayer
 
 
+import numpy as np
+import contextlib
+import time
+
+
+@contextlib.contextmanager
+def timeit(name):
+    print(name)
+    t0 = time.time()
+    yield
+    t1 = time.time()
+
+    print(f"{name} took: {t1-t0} sec")
+
+
 def layer_factory(
     viewer,
     interpolator,
@@ -12,6 +27,8 @@ def layer_factory(
     interpolated_layer_name="Interpolated",
     edge_color=None,
     face_color=None,
+    current_edge_color=None,
+    current_face_color=None,
     edge_width=None,
     z_index=None,
     opacity=None,
@@ -34,24 +51,29 @@ def layer_factory(
         interpolated_layer=interpolated_layer,
     )
 
+    print("add layer")
     viewer.add_layer(ctrl_layer)
+    print("DONE")
 
     if data is not None:
-        ctrl_layer.add_polygons(data=data)
 
-        if z_index is not None:
-            # z-index changes are automatically
-            # updated in the interpolated layer
-            ctrl_layer.z_index = z_index
+        print("SUB")
+        ctrl_layer.add(
+            data=data,
+            interpolated_layer_kwargs=dict(
+                edge_color=edge_color,
+                face_color=face_color,
+                current_edge_color=current_edge_color,
+                current_face_color=current_face_color,
+                edge_width=edge_width,
+            ),
+        )
+        # interpolated_layer.edge_color = edge_color
+        # viewer._on_layers_change()
 
-        if edge_color is not None:
-            interpolated_layer.edge_color = edge_color
-
-        if face_color is not None:
-            interpolated_layer.face_color = face_color
-
-        if edge_width is not None:
-            interpolated_layer.edge_width = edge_width
+        with timeit("set properties"):
+            if z_index is not None:
+                ctrl_layer.z_index = z_index
 
     # if either of the layers is deleted
     # we also delete the other one

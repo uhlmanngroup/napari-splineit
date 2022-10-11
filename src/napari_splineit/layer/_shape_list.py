@@ -10,31 +10,18 @@ import contextlib
 import time
 
 
-@contextlib.contextmanager
-def timeit(name):
-    print(name)
-    t0 = time.time()
-    yield
-    t1 = time.time()
-
-    print(f"{name} took: {t1-t0} sec")
-
-
 class CtrlLayerShapeList(ShapeList):
     def __init__(self, *args, ctrl_layer, interpolated_layer, **kwargs):
         self.ctrl_layer = ctrl_layer
         self.interpolated_layer = interpolated_layer
+        self.propagate = True
         super(CtrlLayerShapeList, self).__init__(*args, **kwargs)
         self.mode = "DIRECT"
 
     def edit(
         self, index, data, face_color=None, edge_color=None, new_type=None
     ):
-        # if self.ctrl_layer._mode == Mode.VERTEX_INSERT:
 
-        #     pass
-        # else:
-        #    pass
         super(CtrlLayerShapeList, self).edit(
             index=index,
             data=data,
@@ -43,21 +30,18 @@ class CtrlLayerShapeList(ShapeList):
             new_type=new_type,
         )
 
-        new_data = self.ctrl_layer.interpolate(data)
-
-        self.update_interpolated(index=index, data=new_data, new_type=new_type)
+        if self.propagate:
+            new_data = self.ctrl_layer.interpolate(data)
+            self.update_interpolated(
+                index=index, data=new_data, new_type=new_type
+            )
 
     def run_interpolation(self):
 
-        with timeit("do interpolation"):
-            interpolated_polygons = [
-                self.ctrl_layer.interpolate(s.data)
-                for index, s in enumerate(self.shapes)
-            ]
-
-        print(
-            f"PRE {len(self.interpolated_layer.face_color) = }  {len(interpolated_polygons) = }"
-        )
+        interpolated_polygons = [
+            self.ctrl_layer.interpolate(s.data)
+            for index, s in enumerate(self.shapes)
+        ]
 
         with self.interpolated_layer.events.set_data.blocker():
 
@@ -98,34 +82,48 @@ class CtrlLayerShapeList(ShapeList):
         self.interpolated_layer.refresh()
 
     def shift(self, index, shift):
-        self.interpolated_layer._data_view.shift(index, shift.copy())
+        if self.propagate:
+            self.interpolated_layer._data_view.shift(index, shift.copy())
         super(CtrlLayerShapeList, self).shift(index, shift.copy())
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     def scale(self, index, scale, center=None):
-        self.interpolated_layer._data_view.scale(index, scale, center)
+        if self.propagate:
+            self.interpolated_layer._data_view.scale(index, scale, center)
         super(CtrlLayerShapeList, self).scale(index, scale, center)
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     def rotate(self, index, angle, center=None):
-        self.interpolated_layer._data_view.rotate(index, angle, center)
+        if self.propagate:
+            self.interpolated_layer._data_view.rotate(index, angle, center)
         super(CtrlLayerShapeList, self).rotate(index, angle, center)
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     def flip(self, index, axis, center=None):
-        self.interpolated_layer._data_view.flip(index, axis, center)
+        if self.propagate:
+            self.interpolated_layer._data_view.flip(index, axis, center)
         super(CtrlLayerShapeList, self).flip(index, axis, center)
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     def transform(self, index, transform):
-        self.interpolated_layer._data_view.transform(index, transform.copy())
+        if self.propagate:
+            self.interpolated_layer._data_view.transform(
+                index, transform.copy()
+            )
         super(CtrlLayerShapeList, self).transform(index, transform.copy())
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     def update_z_index(self, index, z_index):
-        self.interpolated_layer._data_view.update_z_index(index, z_index)
+        if self.propagate:
+            self.interpolated_layer._data_view.update_z_index(index, z_index)
         super(CtrlLayerShapeList, self).update_z_index(index, z_index)
-        self.interpolated_layer.refresh()
+        if self.propagate:
+            self.interpolated_layer.refresh()
 
     # def remove(self, index, renumber=True):
     #     print("remove ", index, renumber)
