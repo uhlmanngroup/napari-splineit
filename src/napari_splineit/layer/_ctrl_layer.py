@@ -14,6 +14,12 @@ from ._shape_list import CtrlLayerShapeList
 
 # fmt: off
 
+from napari.layers.shapes._shapes_utils import (
+    extract_shape_type,
+    number_of_shapes,
+    get_default_shape_type
+)
+
 
 class CtrlLayerControls(QtShapesControls):
     def __init__(self, layer):
@@ -92,27 +98,72 @@ class CtrlLayer(ShapesLayer):
     def _type_string(self):
         return "shapes"
 
-    def add(self, data, *, shape_type, **kwargs):
-        if shape_type != "polygon" and shape_type != "path":
-            raise RuntimeError("only polygon shape type is allowed")
+    def set_polygons(self, data, edge_color,
+                     face_color,
+                     current_edge_color=None,
+                     current_face_color=None):
+        self._data_view.propagate = False
+        self.data = [(d, 'polygon') for d in data]
+        interpolated = [
+            (self.interpolate(data=poly), 'polygon') for poly in data
+        ]
+        self.interpolated_layer.data = interpolated
+        self.interpolated_layer.edge_color = edge_color
+        self.interpolated_layer.face_color = face_color
+        self._data_view.propagate = True
+        if current_edge_color is not None:
+            self.interpolated_layer.current_edge_color = edge_color
+        if current_face_color is not None:
+            self.interpolated_layer.current_face_color = face_color
 
-        if isinstance(data, list):
+    def add(self, data, *, shape_type="polygon",
+            interpolated_layer_kwargs=None, **kwargs):
+        # print("data",len(data),"shape_type",shape_type)
+        if interpolated_layer_kwargs is None:
+            interpolated_layer_kwargs = dict()
 
+        if shape_type == "":
+            shape_type = "polygon"
+        if shape_type != "polygon" \
+           and shape_type != "path" \
+           and not isinstance(shape_type, list):
+            msg = f"only polygon shape type is allowed: {shape_type=}"
+            raise RuntimeError(msg)
+
+        data_is_3d_array = False
+        if isinstance(data, np.ndarray) and data.ndim == 3:
+            data_is_3d_array = True
+
+        if isinstance(data, list) or data_is_3d_array:
             super().add(data=data, shape_type=shape_type, **kwargs)
 
-            self.interpolated_layer.add(
-                data=[self.interpolate(data=poly) for poly in data],
-                shape_type=shape_type,
-                **kwargs
-            )
+            if self._data_view.propagate:
+
+                interpolated = [self.interpolate(data=poly) for poly in data]
+
+                if data_is_3d_array:
+                    interpolated = np.array(interpolated)
+
+                self.interpolated_layer.add(
+                    data=interpolated,
+                    shape_type=shape_type,
+                    **{**kwargs, **interpolated_layer_kwargs}
+                )
 
         else:
-
             super().add(data=data, shape_type=shape_type, **kwargs)
-            interpolated = self.interpolate(data=data)
-            self.interpolated_layer.add(
-                data=interpolated, shape_type=shape_type, **kwargs
-            )
+
+            if self._data_view.propagate:
+
+                interpolated = self.interpolate(data=data)
+
+                self.interpolated_layer.add(
+                    data=interpolated, shape_type=shape_type, **kwargs
+                )
+
+    def remove_all(self):
+        self.selected_data = set(range(self.nshapes))
+        self.remove_selected()
 
     def interpolate(self, data):
         return self.interpolator(data)
@@ -130,9 +181,82 @@ class CtrlLayer(ShapesLayer):
         if shape_type != "polygon":
             raise RuntimeError("only polygon shape is allowed")
 
+    def remove_selected(self):
+
+        self.interpolated_layer.selected_data = set(self.selected_data)
+        self.interpolated_layer.remove_selected()
+        super().remove_selected()
+
+    @property
+    def data(self):
+        """list: Each element is an (N, D) array of the vertices of a shape."""
+        return self._data_view.data
+
+    @data.setter
+    def data(self, data):
+        self._finish_drawing()
+
+        data, shape_type = extract_shape_type(data)
+        n_new_shapes = number_of_shapes(data)
+        # not given a shape_type through data
+        if shape_type is None:
+            shape_type = self.shape_type
+
+        edge_widths = self._data_view.edge_widths
+        edge_color = self._data_view.edge_color
+        face_color = self._data_view.face_color
+        z_indices = self._data_view.z_indices
+
+        # fewer shapes, trim attributes
+        if self.nshapes > n_new_shapes:
+            shape_type = shape_type[:n_new_shapes]
+            edge_widths = edge_widths[:n_new_shapes]
+            z_indices = z_indices[:n_new_shapes]
+            edge_color = edge_color[:n_new_shapes]
+            face_color = face_color[:n_new_shapes]
+        # more shapes, add attributes
+        elif self.nshapes < n_new_shapes:
+            n_shapes_difference = n_new_shapes - self.nshapes
+            shape_type = (
+                shape_type
+                + [get_default_shape_type(shape_type)] * n_shapes_difference
+            )
+            edge_widths = edge_widths + [1] * n_shapes_difference
+            z_indices = z_indices + [0] * n_shapes_difference
+            edge_color = np.concatenate(
+                (
+                    edge_color,
+                    self._get_new_shape_color(n_shapes_difference, 'edge'),
+                )
+            )
+            face_color = np.concatenate(
+                (
+                    face_color,
+                    self._get_new_shape_color(n_shapes_difference, 'face'),
+                )
+            )
+
+        self._data_view = CtrlLayerShapeList(
+            ndisplay=self._ndisplay,
+            ctrl_layer=self,
+            interpolated_layer=self.interpolated_layer,
+        )
+
+        self.add(
+            data,
+            shape_type=shape_type,
+            edge_width=edge_widths,
+            edge_color=edge_color,
+            face_color=face_color,
+            z_index=z_indices,
+        )
+
+        self._update_dims()
+        self.events.data(value=self.data)
+        self._set_editable()
+
 
 layer_to_controls[CtrlLayer] = CtrlLayerControls
-
 
 # Supporting Napari readers with a custom layer  is a bit hacky:
 #  - Napari assumes that the layer is in the namespace of `napari.layers`.

@@ -1,5 +1,5 @@
-from qtpy.QtWidgets import QWidget,QHBoxLayout,QSlider,QSpinBox
-from qtpy.QtCore import Qt,QSignalBlocker,Signal
+from qtpy.QtWidgets import QWidget, QHBoxLayout, QSlider, QSpinBox
+from qtpy.QtCore import Qt, QSignalBlocker, Signal
 
 
 class SpinSlider(QWidget):
@@ -7,10 +7,7 @@ class SpinSlider(QWidget):
     valueChanged = Signal(int)
 
     def __init__(self, minmax, value):
-        super(SpinSlider, self).__init__()
-
-
-
+        super().__init__()
 
         layout = QHBoxLayout()
         self.setLayout(layout)
@@ -29,8 +26,8 @@ class SpinSlider(QWidget):
         self.spinbox.setValue(value)
         self.spinbox.valueChanged.connect(self._on_spin_box_canged)
 
-        layout.addWidget(self.spinbox,1)
-        layout.addWidget(self.slider,4)
+        layout.addWidget(self.spinbox, 1)
+        layout.addWidget(self.slider, 4)
 
     def value(self):
         return self.slider.value()
@@ -46,4 +43,3 @@ class SpinSlider(QWidget):
         with QSignalBlocker(self.slider) as blocker:
             self.slider.setValue(self.spinbox.value())
         self.valueChanged.emit(self.slider.value())
-

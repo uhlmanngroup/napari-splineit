@@ -12,6 +12,8 @@ def layer_factory(
     interpolated_layer_name="Interpolated",
     edge_color=None,
     face_color=None,
+    current_edge_color=None,
+    current_face_color=None,
     edge_width=None,
     z_index=None,
     opacity=None,
@@ -37,21 +39,22 @@ def layer_factory(
     viewer.add_layer(ctrl_layer)
 
     if data is not None:
-        ctrl_layer.add_polygons(data=data)
+
+        ctrl_layer.add(
+            data=data,
+            interpolated_layer_kwargs=dict(
+                edge_color=edge_color,
+                face_color=face_color,
+                edge_width=edge_width,
+            ),
+        )
+        if current_edge_color is not None:
+            interpolated_layer.current_edge_color = current_edge_color
+        if current_face_color is not None:
+            interpolated_layer.current_face_color = current_face_color
 
         if z_index is not None:
-            # z-index changes are automatically
-            # updated in the interpolated layer
             ctrl_layer.z_index = z_index
-
-        if edge_color is not None:
-            interpolated_layer.edge_color = edge_color
-
-        if face_color is not None:
-            interpolated_layer.face_color = face_color
-
-        if edge_width is not None:
-            interpolated_layer.edge_width = edge_width
 
     # if either of the layers is deleted
     # we also delete the other one

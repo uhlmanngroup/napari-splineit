@@ -53,7 +53,7 @@ class SplineInterpolator(InterpolatorBase):
     UI = SplineInterpolatorUI
     name = "SplineInterpolator"
 
-    def __init__(self, k=3, s=0.0, n=10):
+    def __init__(self, k=3, s=0.0, n=4):
         super().__init__()
         self.k = k
         self.s = s
@@ -69,15 +69,15 @@ class SplineInterpolator(InterpolatorBase):
         else:
 
             first_point = knots[0, :]
-            knots = np.concatenate(
-                [knots, first_point[None, :]], axis=0
-            )
+            knots = np.concatenate([knots, first_point[None, :]], axis=0)
 
             t = np.arange(knots.shape[0])
 
             cs_x = splrep(t, knots[:, 0], per=True, k=self.k, s=self.s)
             cs_y = splrep(t, knots[:, 1], per=True, k=self.k, s=self.s)
-            tfine = np.linspace(0, t[-1], self.n * knots.shape[0], endpoint=False)
+            tfine = np.linspace(
+                0, t[-1], self.n * knots.shape[0], endpoint=False
+            )
             xx = splev(tfine, cs_x)[:, None]
             yy = splev(tfine, cs_y)[:, None]
             ret = np.concatenate([xx, yy], axis=1)

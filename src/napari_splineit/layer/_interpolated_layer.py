@@ -15,7 +15,6 @@ class InterpolatedLayerControls(QtShapesControls):
         # since we do them on the ctrl layer and
         # the respective interaction is automatically
         # propagated to the interpolated layer
-
         self.rectangle_button.setEnabled(False)
         self.ellipse_button.setEnabled(False)
         self.line_button.setEnabled(False)
