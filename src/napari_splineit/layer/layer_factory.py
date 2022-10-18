@@ -38,13 +38,10 @@ def layer_factory(
         interpolated_layer=interpolated_layer,
     )
 
-    print("add layer")
     viewer.add_layer(ctrl_layer)
-    print("DONE")
 
     if data is not None:
 
-        print("SUB")
         ctrl_layer.add(
             data=data,
             interpolated_layer_kwargs=dict(
