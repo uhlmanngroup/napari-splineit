@@ -8,16 +8,22 @@ from .interpolator_base import InterpolatorBase
 def curve_from_knots(knots, n):
 
     if knots.shape[0] > 3:
-        ctrl_points = getCoefsFromKnots(knots, "cubic")
-        phi = phi_generator_impl(
-            ctrl_points.shape[0], n * ctrl_points.shape[0], "cubic"
-        )
-        SplineContour = SplineCurveSample(
-            ctrl_points.shape[0], B3(), True, ctrl_points
-        )
+
+        coefs = getCoefsFromKnots(knots, "cubic")
+
+        phi = phi_generator_impl(coefs.shape[0], n * coefs.shape[0], "cubic")
+        SplineContour = SplineCurveSample(coefs.shape[0], B3(), True, coefs)
         curve = SplineContour.sample(phi)
         return curve
     return knots.copy()
+
+
+def knots_from_coefs(x):
+    coefs = x
+    phi = phi_generator_impl(coefs.shape[0], coefs.shape[0], "cubic")
+    SplineContour = SplineCurveSample(coefs.shape[0], B3(), True, coefs)
+    knots = SplineContour.sample(phi)
+    return knots
 
 
 class UhlmannSplinesUI(QWidget):

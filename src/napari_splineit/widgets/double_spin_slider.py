@@ -1,14 +1,18 @@
-from qtpy.QtWidgets import QWidget,QHBoxLayout,QSlider,QSpinBox,QDoubleSpinBox
-from qtpy.QtCore import Qt,QSignalBlocker,Signal
-
+from qtpy.QtWidgets import (
+    QWidget,
+    QHBoxLayout,
+    QSlider,
+    QSpinBox,
+    QDoubleSpinBox,
+)
+from qtpy.QtCore import Qt, QSignalBlocker, Signal
 
 
 class DoubleSlider(QSlider):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.decimals = 5
-        self._max_int = 10 ** self.decimals
+        self._max_int = 10**self.decimals
 
         super().setMinimum(0)
         super().setMaximum(self._max_int)
@@ -21,10 +25,15 @@ class DoubleSlider(QSlider):
         return self._max_value - self._min_value
 
     def value(self):
-        return float(super().value()) / self._max_int * self._value_range + self._min_value
+        return (
+            float(super().value()) / self._max_int * self._value_range
+            + self._min_value
+        )
 
     def setValue(self, value):
-        super().setValue(int((value - self._min_value) / self._value_range * self._max_int))
+        super().setValue(
+            int((value - self._min_value) / self._value_range * self._max_int)
+        )
 
     def setMinimum(self, value):
         if value > self._max_value:
@@ -55,8 +64,7 @@ class DoubleSpinSlider(QWidget):
         super(DoubleSpinSlider, self).__init__()
 
         if single_step is None:
-            single_step = (minmax[1] - minmax[0])/10.0
-
+            single_step = (minmax[1] - minmax[0]) / 10.0
 
         layout = QHBoxLayout()
         self.setLayout(layout)
@@ -76,8 +84,8 @@ class DoubleSpinSlider(QWidget):
         self.spinbox.setValue(value)
         self.spinbox.valueChanged.connect(self._on_spin_box_canged)
 
-        layout.addWidget(self.spinbox,1)
-        layout.addWidget(self.slider,4)
+        layout.addWidget(self.spinbox, 1)
+        layout.addWidget(self.slider, 4)
 
     def value(self):
         return self.slider.value()
@@ -93,4 +101,3 @@ class DoubleSpinSlider(QWidget):
         with QSignalBlocker(self.slider) as blocker:
             self.slider.setValue(self.spinbox.value())
         self.valueChanged.emit(self.slider.value())
-
