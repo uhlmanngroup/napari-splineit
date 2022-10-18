@@ -154,12 +154,6 @@ class CtrlLayer(ShapesLayer):
         self.selected_data = set(range(self.nshapes))
         self.remove_selected()
 
-        # self.interpolated_layer.selected_data = set(range(self.interpolated_layer.nshapes))
-        # self.interpolated_layer.remove_selected()
-        # print("update edge_color")
-        # self.interpolated_layer.edge_color = np.zeros([0,4])
-        # self.interpolated_layer.face_color = np.zeros([0,4]) 
-
     def interpolate(self, data):
         return self.interpolator(data)
 

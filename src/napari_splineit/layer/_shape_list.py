@@ -45,26 +45,20 @@ class CtrlLayerShapeList(ShapeList):
 
         with self.interpolated_layer.events.set_data.blocker():
 
-            with timeit("save colors"):
-                edge_color = self.interpolated_layer.edge_color
-                face_color = self.interpolated_layer.face_color
-            # self.interpolated_layer._data_view.remove_all()
-            print(f"{len(face_color) = }  {len(interpolated_polygons) = }")
+            # edge_color = self.interpolated_layer.edge_color
+            # face_color = self.interpolated_layer.face_color
+            # current_edge_color = self.interpolated_layer.edge_color
+            # current_face_color = self.interpolated_layer.face_color
+            print("set")
+            self.interpolated_layer.data = interpolated_polygons
+            # self.interpolated_layer.selected_data = set(
+            #     range(self.interpolated_layer.nshapes)
+            # )
+            # self.interpolated_layer.remove_selected()
 
-            with timeit("remove all"):
-                self.interpolated_layer.selected_data = set(
-                    range(self.interpolated_layer.nshapes)
-                )
-                self.interpolated_layer.remove_selected()
-
-            print(f"{len(self.interpolated_layer.face_color) = }")
-
-            with timeit("add polygons to interpolated_layer"):
-                self.interpolated_layer.add_polygons(interpolated_polygons)
-
-            with timeit("restore colors"):
-                self.interpolated_layer.edge_color = edge_color
-                self.interpolated_layer.face_color = face_color
+            # self.interpolated_layer.add_polygons(interpolated_polygons)
+            # self.interpolated_layer.edge_color = edge_color
+            # self.interpolated_layer.face_color = face_color
 
         self.interpolated_layer.refresh()
 
@@ -124,12 +118,3 @@ class CtrlLayerShapeList(ShapeList):
         super(CtrlLayerShapeList, self).update_z_index(index, z_index)
         if self.propagate:
             self.interpolated_layer.refresh()
-
-    # def remove(self, index, renumber=True):
-    #     print("remove ", index, renumber)
-    #     if renumber:
-
-    #         self.interpolated_layer._data_view.remove(index, renumber)
-    #     super(CtrlLayerShapeList, self).remove(index, renumber)
-    #     if renumber:
-    #         self.interpolated_layer.refresh()
