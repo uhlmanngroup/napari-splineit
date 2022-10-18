@@ -16,20 +16,6 @@ from ._shape_list import CtrlLayerShapeList
 
 from napari.layers.shapes._shapes_utils import extract_shape_type,number_of_shapes,get_default_shape_type
 
-import contextlib
-import time
-
-
-@contextlib.contextmanager
-def timeit(name):
-    print(name)
-    t0 = time.time()
-    yield
-    t1 = time.time()
-
-    print(f"{name} took: {t1-t0} sec")
-
-
 
 class CtrlLayerControls(QtShapesControls):
     def __init__(self, layer):
