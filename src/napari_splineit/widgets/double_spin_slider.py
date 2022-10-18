@@ -2,7 +2,6 @@ from qtpy.QtWidgets import (
     QWidget,
     QHBoxLayout,
     QSlider,
-    QSpinBox,
     QDoubleSpinBox,
 )
 from qtpy.QtCore import Qt, QSignalBlocker, Signal
@@ -61,7 +60,7 @@ class DoubleSpinSlider(QWidget):
     valueChanged = Signal(int)
 
     def __init__(self, minmax, value, single_step=None):
-        super(DoubleSpinSlider, self).__init__()
+        super().__init__()
 
         if single_step is None:
             single_step = (minmax[1] - minmax[0]) / 10.0

@@ -14,7 +14,11 @@ from ._shape_list import CtrlLayerShapeList
 
 # fmt: off
 
-from napari.layers.shapes._shapes_utils import extract_shape_type,number_of_shapes,get_default_shape_type
+from napari.layers.shapes._shapes_utils import (
+    extract_shape_type,
+    number_of_shapes,
+    get_default_shape_type
+)
 
 
 class CtrlLayerControls(QtShapesControls):
@@ -94,10 +98,15 @@ class CtrlLayer(ShapesLayer):
     def _type_string(self):
         return "shapes"
 
-    def set_polygons(self, data, edge_color, face_color,current_edge_color=None, current_face_color=None):
+    def set_polygons(self, data, edge_color,
+                     face_color,
+                     current_edge_color=None,
+                     current_face_color=None):
         self._data_view.propagate = False
-        self.data = [(d,'polygon') for d in data]
-        interpolated = [(self.interpolate(data=poly),'polygon') for poly in data]
+        self.data = [(d, 'polygon') for d in data]
+        interpolated = [
+            (self.interpolate(data=poly), 'polygon') for poly in data
+        ]
         self.interpolated_layer.data = interpolated
         self.interpolated_layer.edge_color = edge_color
         self.interpolated_layer.face_color = face_color
@@ -105,20 +114,24 @@ class CtrlLayer(ShapesLayer):
         if current_edge_color is not None:
             self.interpolated_layer.current_edge_color = edge_color
         if current_face_color is not None:
-            self.interpolated_layer.current_face_color = face_color 
+            self.interpolated_layer.current_face_color = face_color
 
-    def add(self, data, *, shape_type="polygon", interpolated_layer_kwargs=None, **kwargs):
+    def add(self, data, *, shape_type="polygon",
+            interpolated_layer_kwargs=None, **kwargs):
         # print("data",len(data),"shape_type",shape_type)
         if interpolated_layer_kwargs is None:
             interpolated_layer_kwargs = dict()
 
         if shape_type == "":
             shape_type = "polygon"
-        if shape_type != "polygon" and shape_type != "path" and not isinstance(shape_type,list):
-            raise RuntimeError(f"only polygon shape type is allowed: {shape_type=}")
+        if shape_type != "polygon" \
+           and shape_type != "path" \
+           and not isinstance(shape_type, list):
+            msg = f"only polygon shape type is allowed: {shape_type=}"
+            raise RuntimeError(msg)
 
         data_is_3d_array = False
-        if isinstance(data, np.ndarray) and data.ndim ==3:
+        if isinstance(data, np.ndarray) and data.ndim == 3:
             data_is_3d_array = True
 
         if isinstance(data, list) or data_is_3d_array:
@@ -131,13 +144,11 @@ class CtrlLayer(ShapesLayer):
                 if data_is_3d_array:
                     interpolated = np.array(interpolated)
 
-
                 self.interpolated_layer.add(
                     data=interpolated,
                     shape_type=shape_type,
-                    **{**kwargs,**interpolated_layer_kwargs}
+                    **{**kwargs, **interpolated_layer_kwargs}
                 )
-
 
         else:
             super().add(data=data, shape_type=shape_type, **kwargs)
@@ -170,13 +181,11 @@ class CtrlLayer(ShapesLayer):
         if shape_type != "polygon":
             raise RuntimeError("only polygon shape is allowed")
 
-
     def remove_selected(self):
 
         self.interpolated_layer.selected_data = set(self.selected_data)
         self.interpolated_layer.remove_selected()
         super().remove_selected()
-
 
     @property
     def data(self):
@@ -227,7 +236,6 @@ class CtrlLayer(ShapesLayer):
                 )
             )
 
-
         self._data_view = CtrlLayerShapeList(
             ndisplay=self._ndisplay,
             ctrl_layer=self,
@@ -248,9 +256,7 @@ class CtrlLayer(ShapesLayer):
         self._set_editable()
 
 
-
 layer_to_controls[CtrlLayer] = CtrlLayerControls
-
 
 # Supporting Napari readers with a custom layer  is a bit hacky:
 #  - Napari assumes that the layer is in the namespace of `napari.layers`.

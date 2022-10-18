@@ -75,21 +75,23 @@ class SplineCurve:
     def getKnotsFromBinaryMask(self, binaryMask):
         from skimage import measure
 
-        binaryMask_padded = np.zeros((binaryMask.shape[0]+2,binaryMask.shape[1]+2))
-        binaryMask_padded[1:-1,1:-1]=binaryMask
-        
+        binaryMask_padded = np.zeros(
+            (binaryMask.shape[0] + 2, binaryMask.shape[1] + 2)
+        )
+        binaryMask_padded[1:-1, 1:-1] = binaryMask
+
         coefs_list = []
         object_list = np.unique(binaryMask_padded)[1:]
         for i in range(len(object_list)):
             binaryMask_padded_tmp = binaryMask_padded.copy()
-            binaryMask_padded_tmp[binaryMask_padded_tmp != i+1] =0
+            binaryMask_padded_tmp[binaryMask_padded_tmp != i + 1] = 0
             binaryMask_padded_tmp[binaryMask_padded_tmp > 0] = 1
             contour = measure.find_contours(binaryMask_padded_tmp, 0)[0]
-            
-            c = contour-1
+
+            c = contour - 1
             coefs = self.getCoefsFromDenseContour(c)
 
-            knots = np.zeros((self.M,2))
+            knots = np.zeros((self.M, 2))
             for k in range(self.M):
                 knots[k] = self.sample_point(k)
 
@@ -111,13 +113,13 @@ class SplineCurve:
             ):
                 wrappedT = t - (k - self.M)
         return wrappedT
-        
+
     def sample_point(self, t):
         value = 0.0
         for k in range(0, self.M):
             tval = self.wrapIndex(t, k)
-            if (tval > -self.halfSupport and tval < self.halfSupport):
-                splineValue=self.splineGenerator.value(tval)
+            if tval > -self.halfSupport and tval < self.halfSupport:
+                splineValue = self.splineGenerator.value(tval)
                 value += self.coefs[k] * splineValue
         return value
 
@@ -163,11 +165,11 @@ class B2(SplineGenerator):
     def value(self, x):
         val = 0.0
         if -1.5 <= x and x <= -0.5:
-            val = 0.5 * (x ** 2) + 1.5 * x + 1.125
+            val = 0.5 * (x**2) + 1.5 * x + 1.125
         elif -0.5 < x and x <= 0.5:
             val = -x * x + 0.75
         elif 0.5 < x and x <= 1.5:
-            val = 0.5 * (x ** 2) - 1.5 * x + 1.125
+            val = 0.5 * (x**2) - 1.5 * x + 1.125
         return val
 
     def support(self):
@@ -189,16 +191,16 @@ class B3(SplineGenerator):
 
         cp = np.zeros(self.M)
         for k in range(0, self.M):
-            cp[0] += s[(self.M - k) % self.M] * (pole ** k)
-        cp[0] *= 1.0 / (1.0 - (pole ** self.M))
+            cp[0] += s[(self.M - k) % self.M] * (pole**k)
+        cp[0] *= 1.0 / (1.0 - (pole**self.M))
 
         for k in range(1, self.M):
             cp[k] = s[k] + pole * cp[k - 1]
 
         cm = np.zeros(self.M)
         for k in range(0, self.M):
-            cm[self.M - 1] += (pole ** k) * cp[k]
-        cm[self.M - 1] *= pole / (1.0 - (pole ** self.M))
+            cm[self.M - 1] += (pole**k) * cp[k]
+        cm[self.M - 1] *= pole / (1.0 - (pole**self.M))
         cm[self.M - 1] += cp[self.M - 1]
         cm[self.M - 1] *= -pole
 

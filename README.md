@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/uhlmanngroup/napari-splineit/branch/main/graph/badge.svg)](https://codecov.io/gh/uhlmanngroup/napari-splineit)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-splineit)](https://napari-hub.org/plugins/napari-splineit)
 
-A napari plugin for the interactive manipulation of spline-interpolation based geometrical models 
+A napari plugin for the interactive manipulation of spline-interpolation based geometrical models
 
 ----------------------------------
 

@@ -3,8 +3,6 @@ from napari.utils.events import Event
 from ._interpolated_layer import InterpolatedLayer
 from ._ctrl_layer import CtrlLayer
 
-import numpy as np
-
 
 def layer_factory(
     viewer,
