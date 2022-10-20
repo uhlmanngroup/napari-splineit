@@ -53,8 +53,6 @@ def splineit_file_reader(path):
             raw_data["face_color"], dtype="float32"
         )
 
-    print("layer_attributes", layer_attributes)
-
     return [(list_of_polygons, layer_attributes, "splineit_ctrl")]
 
 
