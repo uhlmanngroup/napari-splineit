@@ -7,11 +7,11 @@
 [![codecov](https://codecov.io/gh/uhlmanngroup/napari-splineit/branch/main/graph/badge.svg)](https://codecov.io/gh/uhlmanngroup/napari-splineit)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-splineit)](https://napari-hub.org/plugins/napari-splineit)
 
-A napari plugin for the interactive manipulation of spline-interpolation based geometrical models
+A napari plugin for the interactive manipulation of spline-interpolation based geometrical models.
 
 ----------------------------------
 
-This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
+This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template. It facilitates the manual editing of  instance masks obtained with your favourite segmentation method, and of curves predicted by [SplineDist].
 
 <!--
 Don't miss the full getting started guide to set up your new package:
@@ -32,6 +32,9 @@ You can install `napari-splineit` via [pip]:
 To install latest development version :
 
     pip install git+https://github.com/uhlmanngroup/napari-splineit.git
+
+
+You can also find this plugin on the [napari hub].
 
 
 ## Contributing
@@ -58,6 +61,8 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [Apache Software License 2.0]: http://www.apache.org/licenses/LICENSE-2.0
 [Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
+[napari hub]: https://www.napari-hub.org/plugins/napari-splineit
+[SplineDist]: https://github.com/uhlmanngroup/napari-splinedist
 
 [file an issue]: https://github.com/uhlmanngroup/napari-splineit/issues
 
